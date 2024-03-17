@@ -2,7 +2,6 @@
 
 - name: Install and Configure Web Server Components
   hosts: all
-  gather_facts: false
   become: true
   tasks:
     - name: Install Node.js and npm
@@ -10,11 +9,7 @@
         name:
           - nodejs
           - npm
-        collections:
-          - community.general
-          - apache2
-        tags: 
-          - php
+        state: present
       tags: 
         - nodejs
 
@@ -73,9 +68,10 @@
         - php
 
     - name: Enable PHP 8.2 FPM Apache configuration
-      apache2:
-        conf: php8.2-fpm
-        state: present
+      template:
+        src: php-fpm.conf.j2  # Path to your custom Apache configuration template
+        dest: /etc/apache2/conf-available/php8.2-fpm.conf
+      notify: Restart Apache
       when: ansible_service_mgr == 'systemd'
       tags: 
         - php
