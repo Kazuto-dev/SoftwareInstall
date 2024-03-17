@@ -1,30 +1,130 @@
 ---
 
-- name: Install and Configure Web Server
-  hosts: your_server
+- name: Install and Configure Web Server Components
+  hosts: all
+  gather_facts: false
   become: true
   tasks:
+    - name: Install Node.js and npm
+      apt:
+        name:
+          - nodejs
+          - npm
+        collections:
+          - community.general
+          - apache2
+        tags: 
+          - php
+      tags: 
+        - nodejs
+
+    - name: Install PHP 8.2
+      apt:
+        name:
+          - ca-certificates
+          - apt-transport-https
+          - software-properties-common
+          - lsb-release
+        state: present
+      when: ansible_distribution == 'Ubuntu'
+      tags: 
+        - php
+
+    - name: Add PHP repository
+      apt_repository:
+        repo: 'ppa:ondrej/php'
+      when: ansible_distribution == 'Ubuntu'
+      tags: 
+        - php
+
     - name: Update apt cache
       apt:
         update_cache: yes
+      when: ansible_distribution == 'Ubuntu'
+      tags: 
+        - php
 
-    - name: Install required packages
+    - name: Upgrade packages
       apt:
-        name: 
-          - nodejs
-          - php8.2-fpm
-          - nginx
-          - mariadb-server
-          - composer
-          - git
-          - python3-mysqldb
+        upgrade: yes
+      when: ansible_distribution == 'Ubuntu'
+      tags: 
+        - php
 
-    - name: Ensure services are started and enabled
-      service:
+    - name: Install PHP 8.2 FPM and Apache mod_fcgid
+      apt:
+        name:
+          - php8.2-fpm
+          - libapache2-mod-fcgid
+        state: present
+      when: ansible_distribution == 'Ubuntu'
+      tags: 
+        - php
+
+    - name: Enable Apache proxy_fcgi and setenvif modules
+      apache2_module:
         name: "{{ item }}"
-        state: started
-        enabled: yes
+        state: present
       loop:
+        - proxy_fcgi
+        - setenvif
+      when: ansible_service_mgr == 'systemd'
+      tags: 
+        - php
+
+    - name: Enable PHP 8.2 FPM Apache configuration
+      apache2:
+        conf: php8.2-fpm
+        state: present
+      when: ansible_service_mgr == 'systemd'
+      tags: 
+        - php
+
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
+      when: ansible_service_mgr == 'systemd'
+      tags: 
+        - php
+
+    - name: Install NGINX
+      apt:
+        name: nginx
+        state: present
+      tags: 
         - nginx
-        - php8.2-fpm
+
+    - name: Install MariaDB
+      apt:
+        name: mariadb-server
+        state: present
+      tags: 
         - mariadb
+
+    - name: Install PHP CLI and unzip
+      apt:
+        name:
+          - php-cli
+          - unzip
+        state: present
+      tags: 
+        - composer
+
+    - name: Download and install Composer
+      shell: |
+        curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php && \
+        HASH=`curl -sS https://composer.github.io/installer.sig` && \
+        php -r "if (hash_file('SHA384', '/tmp/composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('/tmp/composer-setup.php'); } echo PHP_EOL;" && \
+        sudo php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
+      args:
+        executable: /bin/bash
+      tags: 
+        - composer
+
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+      tags: 
+        - git
