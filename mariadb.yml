@@ -1,13 +1,16 @@
 ---
 
-- name: Install MariaDB
+- name: Install and start MariaDB server
   hosts: all
   gather_facts: no
-  become: true
+  become: yes
   tasks:
-    - name: Install MariaDB
+    - name: Install MariaDB server
       apt:
         name: mariadb-server
         state: present
-      tags: 
-        - mariadb
+
+    - name: Start MariaDB service
+      service:
+        name: mariadb
+        state: started

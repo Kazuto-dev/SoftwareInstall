@@ -1,13 +1,19 @@
 ---
-
-- name: Install NGINX
+- name: Install Nginx using apt
   hosts: all
   gather_facts: no
-  become: true
+  become: yes
   tasks:
-    - name: Install NGINX
+    - name: Install Nginx
       apt:
         name: nginx
         state: present
-      tags: 
-        - nginx
+
+    - name: Fetch Nginx version
+      shell: nginx -v 2>&1
+      register: nginx_version_output
+      changed_when: false
+
+    - name: Display Nginx version
+      debug:
+        msg: "{{ nginx_version_output.stdout }}"

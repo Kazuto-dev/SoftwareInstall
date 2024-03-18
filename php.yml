@@ -1,0 +1,27 @@
+---
+
+- name: Install PHP 8.2 and Apache module on Ubuntu
+  hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Add ondrej/php PPA
+      apt_repository:
+        repo: ppa:ondrej/php
+        state: present
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install PHP 8.2 and Apache module
+      apt:
+        name:
+          - php8.2
+          - libapache2-mod-php8.2
+        state: present
+
+    - name: Restart Apache service
+      systemd:
+        name: apache2
+        state: restarted
