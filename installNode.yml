@@ -1,14 +1,22 @@
 ---
-- name: Install Node.js and npm
+
+- name: Install Node.js on Ubuntu
   hosts: all
   gather_facts: no
-  become: true
+  become: yes
   tasks:
-    - name: Install Node.js and npm
+    - name: Install curl and software-properties-common
       apt:
         name:
-          - nodejs
-          - npm
+          - curl
+          - software-properties-common
         state: present
-      tags: 
-        - nodejs
+
+    - name: Add Node.js repository
+      shell: curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+
+    - name: Install Node.js
+      apt:
+        name: nodejs
+        update_cache: yes
+        state: present
