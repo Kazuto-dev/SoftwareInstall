@@ -1,0 +1,23 @@
+---
+
+- name: Install MySQL Server on Ubuntu
+  hosts: all
+  gather_facts: no
+  become: true
+
+  tasks:
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+
+    - name: Install MySQL Server
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Start MySQL service
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+

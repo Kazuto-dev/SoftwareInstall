@@ -1,0 +1,14 @@
+---
+- name: Install Node.js and npm
+  hosts: all
+  gather_facts: no
+  become: true
+  tasks:
+    - name: Install Node.js and npm
+      apt:
+        name:
+          - nodejs
+          - npm
+        state: present
+      tags: 
+        - nodejs

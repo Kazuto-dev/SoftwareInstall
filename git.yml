@@ -1,0 +1,13 @@
+---
+
+- name: Install Git
+  hosts: all
+  gather_facts: no
+  become: true
+  tasks:
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+      tags: 
+        - git
