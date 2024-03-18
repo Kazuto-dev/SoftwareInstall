@@ -10,10 +10,6 @@
         repo: ppa:ondrej/php
         state: present
 
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-
     - name: Install PHP 8.2 and Apache module
       apt:
         name:
@@ -21,7 +17,28 @@
           - libapache2-mod-php8.2
         state: present
 
-    - name: Restart Apache service
+    - name: Install SQLite3 for PHP 8.2
+      apt:
+        name: php8.2-sqlite3
+        state: present
+
+    - name: Restart PHP FPM service for PHP 8.2
       systemd:
-        name: apache2
+        name: php8.2-fpm
         state: restarted
+
+    - name: Enable PHP 8.2 XML extension
+      command: phpenmod -v 8.2 xml
+      become: yes
+
+    - name: Enable PHP 8.2 cURL extension
+      command: phpenmod -v 8.2 curl
+      become: yes
+
+    - name: Enable PHP 8.2 DOM extension
+      command: phpenmod -v 8.2 dom
+      become: yes
+
+    - name: Enable PHP 8.2 SQLite3 extension
+      command: phpenmod -v 8.2 sqlite3
+      become: yes
